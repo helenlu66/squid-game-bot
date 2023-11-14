@@ -5,8 +5,7 @@ https://github.com/2black0/MicroPython-ESP32-BLE/tree/main
 from machine import Pin, Timer, SoftI2C
 from time import sleep_ms
 import ubluetooth
-from esp32 import raw_temperature
-from hdc1080 import HDC1080
+
 
 class BLE():
     def __init__(self, name):   
@@ -52,12 +51,6 @@ class BLE():
                 red_led.value(not red_led.value())
                 print('red_led', red_led.value())
                 ble.send('red_led' + str(red_led.value()))
-            if message == 'read_temp':
-                print(sensor.read_temperature(True))
-                ble.send(str(sensor.read_temperature(True)))
-            if message == 'read_hum':
-                print(sensor.read_humidity())
-                ble.send(str(sensor.read_humidity()))
            
     def register(self):        
         # Nordic UART Service (NUS)
@@ -81,7 +74,3 @@ class BLE():
         self.ble.gap_advertise(100, bytearray('\x02\x01\x02') + bytearray((len(name) + 1, 0x09)) + name)
         
 # test
-i2c = SoftI2C(scl=Pin(22), sda=Pin(21))
-sensor = HDC1080(i2c)
-red_led = Pin(2, Pin.OUT)
-ble = BLE("ESP32")
