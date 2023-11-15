@@ -1,19 +1,13 @@
+#include "Adafruit_VL53L0X.h"
+
 #define L2 0.05 // length of arm joint in meters
 #define f 0.01  // focal length of camera in meters
 
 
 void setup() {
+  Adafruit_VL53L0X lox = Adafruit_VL53L0X();
   // Initialize sensor (if needed)
   // sensor.init();
-}
-
-
-float read_lidar() {
-  // Implement the logic to read the lidar sensor and return the distance in meters
-  // Example:
-  // float distance = sensor.readDistance();
-  // return distance;
-  return 0.0; // Replace this with the actual reading
 }
 
 void calculate_laser_coordinates(float arm_angle, float &relative_laser_x, float &relative_laser_y) {
@@ -55,13 +49,14 @@ float rotate_arm(float current_angle, float target_angle) {
 }
 
 void loop() {
+  VL53L0X_RangingMeasurementData_t measure;
   // receive image coordinates
   float arm_angle = 0;
   float base_angle = 0;
   float shoulder_x = 0; // in meters (likely will actually be 0)
   float shoulder_y = 0; // in meters
 
-  float Z = read_lidar(); // Ensure lidar output is in meters
+  float Z = measure.RangeMilliMeter * 1000; // lidar output is in mm so need to convert to meters
   float laser_x, laser_y;
   calculate_laser_coordinates(arm_angle, laser_x, laser_y);
   float image_x, image_y;
