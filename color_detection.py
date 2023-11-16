@@ -7,7 +7,7 @@ def nothing(x):
  
 #change the IP address below according to the
 #IP shown in the Serial monitor of Arduino code
-url='http://10.247.137.19/cam-lo.jpg'
+url='http://192.168.43.159/cam-lo.jpg'
  
 cv2.namedWindow("live transmission", cv2.WINDOW_AUTOSIZE)
  

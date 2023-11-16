@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "micropython-example",
+			"path": "../micropython-example"
+		}
+	],
+	"settings": {}
+}
