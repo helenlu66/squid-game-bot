@@ -90,10 +90,14 @@ def motionDetect(interval=3, threshold_percentage = 0.3):
     diff = np.sum(green_mask_difference) / np.sum(green_mask2)
     player_moved = diff >= threshold_percentage
 
-    return player_moved, green_mask2
+    return player_moved
 
-def calculateTarget(green_mask):
+def calculateTarget():
     """Find the (x, y) location of the target based on green_mask"""
+    # get a green mask of the player at this moment
+    player_img = getImage()
+    green_mask = filter_green(player_img)
+    # find the pixel coordinates of a green pixel
     xs, ys = np.where(green_mask)
     if len(xs) > 0:
         x = xs[len(xs)//2]
@@ -134,9 +138,9 @@ def gameLoop():
         turnOnLight(light='green')
         time.sleep(random.randint(5, 15))
         turnOnLight(light='red')
-        player_moved, img = motionDetect()
+        player_moved = motionDetect()
         if player_moved:
-            player_target = calculateTarget(img)
+            player_target = calculateTarget()
             eliminatePlayer(player_target)
             time.sleep(5) # pause a while for servos to get into shooting position
             resetServos() #return servos to initial positions
