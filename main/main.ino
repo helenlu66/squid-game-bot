@@ -1,11 +1,26 @@
 #include "Adafruit_VL53L0X.h"
+#include <MPU6050_tockn.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
 
 #define L2 0.05 // length of arm joint in meters
 #define f 0.01  // focal length of camera in meters
+Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+int sda_pin=21, scl_pin=22;
 
 
 void setup() {
-  Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+  Serial.begin(9600);
+
+  Wire.begin(sda_pin, scl_pin);
+  Serial.println("Adafruit VL53L0X test");
+  // Wire.begin(sda_pin, scl_pin);
+
+  if (!lox.begin()) {
+    Serial.println(F("Failed to boot VL53L0X"));
+  while(1);
+  }
+  // Adafruit_VL53L0X lox = Adafruit_VL53L0X();
   // Initialize sensor (if needed)
   // sensor.init();
 }
