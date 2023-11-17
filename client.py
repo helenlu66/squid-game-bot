@@ -108,7 +108,9 @@ def calculateTarget(green_mask):
     return None
 
 def eliminatePlayer(target):
-    """Send a POST request to ESP32 to eliminate player at target location
+    """Send a POST request to ESP32 to eliminate player at target location.
+    Args:
+        target: (x, y) pixel coordinates. The indices of a green pixel on a 160x120 pixels image.
     """
     data = {
         'servos':'shootingMode',
@@ -142,12 +144,12 @@ def gameLoop():
         if player_moved:
             player_target = calculateTarget(img)
             eliminatePlayer(player_target)
-            time.sleep(5)
-        resetServos() #return servos to initial positions
+            time.sleep(5) # pause a while for servos to get into shooting position
+            resetServos() #return servos to initial positions
         time.sleep(5)
         
         gameState = getGameState()
-    # game ended or is being rest, turn off lights
+    # game ended or is being reset, turn off lights
     turnOffLights()
 
 if __name__=="__main__":
