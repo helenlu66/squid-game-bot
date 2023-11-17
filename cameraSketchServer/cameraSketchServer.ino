@@ -19,8 +19,8 @@
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
  
-const char* ssid = "AlienPrincessEarthBase";
-const char* password = "Qing@1994";
+const char* ssid = "Tufts_Robot";
+const char* password = "";
  
 AsyncWebServer server(80);
  
