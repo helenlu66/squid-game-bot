@@ -1,50 +1,155 @@
 import cv2
 import urllib.request
 import numpy as np
- 
-def nothing(x):
-    pass
+import time
+import requests
+import random
+from PIL import Image
+from io import BytesIO
  
 #change the IP address below according to the
 #IP shown in the Serial monitor of Arduino code
-url='http://10.247.137.19/cam-lo.jpg'
+esp32_cam_url='http://10.0.0.220/picture'
+esp32_url = ''
  
-cv2.namedWindow("live transmission", cv2.WINDOW_AUTOSIZE)
- 
-cv2.namedWindow("Tracking")
-cv2.createTrackbar("LH", "Tracking", 0, 255, nothing)
-cv2.createTrackbar("LS", "Tracking", 0, 255, nothing)
-cv2.createTrackbar("LV", "Tracking", 0, 255, nothing)
-cv2.createTrackbar("UH", "Tracking", 255, 255, nothing)
-cv2.createTrackbar("US", "Tracking", 255, 255, nothing)
-cv2.createTrackbar("UV", "Tracking", 255, 255, nothing)
- 
-while True:
-    img_resp=urllib.request.urlopen(url)
-    imgnp=np.array(bytearray(img_resp.read()),dtype=np.uint8)
-    frame=cv2.imdecode(imgnp,-1)
-    
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
- 
-    l_h = cv2.getTrackbarPos("LH", "Tracking")
-    l_s = cv2.getTrackbarPos("LS", "Tracking")
-    l_v = cv2.getTrackbarPos("LV", "Tracking")
- 
-    u_h = cv2.getTrackbarPos("UH", "Tracking")
-    u_s = cv2.getTrackbarPos("US", "Tracking")
-    u_v = cv2.getTrackbarPos("UV", "Tracking")
- 
-    l_b = np.array([l_h, l_s, l_v])
-    u_b = np.array([u_h, u_s, u_v])
-    
-    mask = cv2.inRange(hsv, l_b, u_b) 
-    res = cv2.bitwise_and(frame, frame, mask=mask)
- 
-    cv2.imshow("live transmission", frame)
-    cv2.imshow("mask", mask)
-    cv2.imshow("res", res)
-    key=cv2.waitKey(5)
-    if key==ord('q'):
-        break
-    
-cv2.destroyAllWindows()
+hue_threshold = 25
+saturation_lower_threshold = 100
+saturation_upper_threshold = 255
+value_lower_threshold = 100
+value_upper_threshold = 255
+
+def getGameState():
+    """Get the game state from the ESP32.
+    Result might be 'game not started', 'game started'
+    """
+    requests.get(esp32_url)
+
+def turnOnLight(light='green'):
+    """Send a POST request to ESP32 to turn on the green or red light
+    """
+    data = {
+        'light':light
+    }
+    requests.post(esp32_url, data=data)
+
+def getImage():
+    """Gets one image from esp32 camera
+    """
+    response = requests.get(esp32_cam_url)
+
+    # Check if the request was successful (status code 200)
+    if response.status_code == 200:
+        # Convert the image data from bytes to a NumPy array
+        image_data = BytesIO(response.content)
+        image = Image.open(image_data)
+        return image
+    else:
+        print("Failed to retrieve image. Status code:", response.status_code)
+        return
+
+def filter_green(img):
+    """return the green mask of tne input image
+
+    Args:
+        img_np (_type_): a PIL image.
+    """
+    # Convert the RGB image to HSV using colorsys.rgb_to_hsv
+    hsv_array = np.array(img.convert("HSV"))
+    print(hsv_array)
+    # Extract the individual channels
+    hue_channel = hsv_array[:, :, 0]
+    print(hue_channel)
+    saturation_channel = hsv_array[:, :, 1]
+    value_channel = hsv_array[:, :, 2]
+
+    green_mask = (hue_channel >= (120 - hue_threshold)) & (hue_channel <= (120 + hue_threshold))
+    print(green_mask)
+    print(np.where(green_mask))
+    return green_mask
+
+def motionDetect(interval=3, threshold_percentage = 0.3):
+    """Get two images from the esp32 camera that are taken `interval` seconds apart.
+    Detect whether there is motion based on these two images.
+
+    Args:
+        interval (int, optional): delay between the two images. Defaults to 1.
+        threshold_percentage (float, optional): the percent change in green pixels used for determining whether there's motion. Defaults to 0.3.
+    """
+    img1_pil = getImage()
+    # for debug purpose save the image to view
+    img1_pil.save('captured_img.jpg')
+    green_mask1  = filter_green(img=img1_pil)
+    boolean_img1 = Image.fromarray(green_mask1)
+    boolean_img1.save('green_mask.jpg')
+
+    img2_pil = getImage()
+    # for debug purpose save the image to view
+    img2_pil.save('captured_img2.jpg')
+    green_mask2  = filter_green(img=img2_pil)
+    boolean_img2 = Image.fromarray(green_mask2)
+    boolean_img2.save('green_mask2.jpg')
+
+    green_mask_difference = np.logical_xor(green_mask1, green_mask2).astype(np.uint8)
+    difference_pil = Image.fromarray(green_mask_difference)
+    difference_pil.save('difference.jpg')
+
+    diff = np.sum(green_mask_difference) / np.sum(green_mask2)
+    player_moved = diff >= threshold_percentage
+
+    return player_moved, green_mask2
+
+def calculateTarget(green_mask):
+    """Find the (x, y) location of the target based on green_mask"""
+    xs, ys = np.where(green_mask)
+    if len(xs) > 0:
+        x = xs[len(xs)//2]
+        y = ys[len(xs)//2]
+        return (x, y)
+    return None
+
+def eliminatePlayer(target):
+    """Send a POST request to ESP32 to eliminate player at target location
+    """
+    data = {
+        'servos':'shootingMode',
+        'target':target
+    }
+    requests.post(esp32_url, data=data)
+
+def turnOffLights():
+    """Send a POST request to ESP32 to turn off both lights
+    """
+    data = {
+        'light':'off'
+    }
+    requests.post(esp32_url, data=data)
+
+def resetServos():
+    """Send a POST request to ESP32 to reset servos
+    """
+    data = {
+        'servos':'reset'
+    }
+    requests.post(esp32_url, data=data)
+
+def gameLoop():
+    gameState = getGameState()
+    while (gameState == 'game started'):
+        turnOnLight(light='green')
+        time.sleep(random.randint(5, 15))
+        turnOnLight(light='red')
+        player_moved, img = motionDetect()
+        if player_moved:
+            player_target = calculateTarget(img)
+            eliminatePlayer(player_target)
+            time.sleep(5)
+        resetServos() #return servos to initial positions
+        time.sleep(5)
+        
+        gameState = getGameState()
+    # game ended or is being rest, turn off lights
+    turnOffLights()
+
+if __name__=="__main__":
+    player_moved, mask = motionDetect()
+    calculateTarget(mask)
