@@ -55,16 +55,12 @@ def filter_green(img):
     """
     # Convert the RGB image to HSV using colorsys.rgb_to_hsv
     hsv_array = np.array(img.convert("HSV"))
-    print(hsv_array)
     # Extract the individual channels
     hue_channel = hsv_array[:, :, 0]
-    print(hue_channel)
     saturation_channel = hsv_array[:, :, 1]
     value_channel = hsv_array[:, :, 2]
 
     green_mask = (hue_channel >= (120 - hue_threshold)) & (hue_channel <= (120 + hue_threshold))
-    print(green_mask)
-    print(np.where(green_mask))
     return green_mask
 
 def motionDetect(interval=3, threshold_percentage = 0.3):
