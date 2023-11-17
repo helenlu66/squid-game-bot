@@ -1,5 +1,3 @@
-import cv2
-import urllib.request
 import numpy as np
 import time
 import requests
