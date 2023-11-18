@@ -66,7 +66,7 @@ def motionDetect(interval=3, threshold_percentage = 0.3):
     Detect whether there is motion based on these two images.
 
     Args:
-        interval (int, optional): delay between the two images. Defaults to 1.
+        interval (int, optional): delay between the two images. Defaults to 3.
         threshold_percentage (float, optional): the percent change in green pixels used for determining whether there's motion. Defaults to 0.3.
     """
     img1_pil = getImage()
@@ -76,6 +76,8 @@ def motionDetect(interval=3, threshold_percentage = 0.3):
     boolean_img1 = Image.fromarray(green_mask1)
     boolean_img1.save('green_mask.jpg')
 
+    # wait for a while before taking the second picture
+    time.sleep(interval)
     img2_pil = getImage()
     # for debug purpose save the image to view
     img2_pil.save('captured_img2.jpg')
