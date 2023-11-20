@@ -53,7 +53,8 @@ void find_scene_coordinates(float image_x, float image_y, float Z, float f1, flo
 }
 
 // Function to calculate inverse kinematics
-void calculate_inverse_kinematics(float player_x, float player_y, float shoulder_x, float shoulder_y, float laser_x, float laser_y, float Z, float *base_angle_deg, float *laser_angle_deg) {
+float calculate_inverse_kinematics(float player_x, float player_y, float shoulder_x, float shoulder_y, float laser_x, float laser_y, float Z, float base_angle_deg, float laser_angle_deg) {
+    float res[2];
     float absolute_laser_x = shoulder_x + laser_x;
     float absolute_laser_y = shoulder_y + laser_y;
     Serial.print("Start inverse!");
@@ -65,11 +66,15 @@ void calculate_inverse_kinematics(float player_x, float player_y, float shoulder
     Serial.print("angle_laser:");
     Serial.println(angle_laser);
     // Convert angles to degrees
-    // *base_angle_deg = angle_base * (180.0 / 3.14);
+    base_angle_deg = 0;
+    Serial.print("check pointer:");
+    Serial.println(base_angle_deg);
+    base_angle_deg = float(angle_base * (180.0 / 3.14));
     float base_angle_deg1 = angle_base * (180.0 / 3.14);
   Serial.print("angle_base_deg:");
     Serial.println(base_angle_deg1);
-    // *laser_angle_deg = angle_laser * (180.0 / 3.14);
+    laser_angle_deg = angle_laser * (180.0 / 3.14);
+    return base_angle_deg;
 }
 
 // Function to rotate base
@@ -84,7 +89,7 @@ float rotate_arm(float current_angle, float target_angle) {
     return target_angle;
 }
 int angle = 0;
-void angle_calc(float image_x,float image_y) {
+float angle_calc(float image_x,float image_y) {
   // if (Serial.available() > 0) {
   // String input = Serial.readStringUntil('\n');
   // angle = std::stoi(input.c_str());
@@ -113,16 +118,22 @@ void angle_calc(float image_x,float image_y) {
   // find_coordinates_from_image(image);
   float *X, *Y;
   float *base_angle_deg, *laser_angle_deg;
+  *base_angle_deg = 0;
   find_scene_coordinates(image_x, image_y, Z, f, X, Y);
   Serial.print("*X");
   Serial.println(*X);
   float angle_base, angle_laser;
-  calculate_inverse_kinematics(*X+0.1, *Y+0.1, shoulder_x, shoulder_y, laser_x, laser_y, Z, base_angle_deg, laser_angle_deg);
-  double base_angle = *base_angle_deg;
+  Serial.print("*base_angle_deg");
+  Serial.println(*base_angle_deg);
+  float base_ag_deg = calculate_inverse_kinematics(*X+0.1, *Y+0.1, shoulder_x, shoulder_y, laser_x, laser_y, Z, 0, 0);
   // base_angle = rotate_base(base_angle);
   // arm_angle = rotate_arm(arm_angle);
   // Send an HTTP POST request every 10 minutes
-  Serial.print(base_angle);
+  // Serial.print(res[0]);
+  delete X, Y, base_angle_deg, laser_angle_deg;
+  delay(100);
+  Serial.println("function completed!");
+  return base_ag_deg;
 }
 
 void setup() {
@@ -181,16 +192,18 @@ void setup() {
   server.addHandler(handler);
   server.begin();
 }
-
 void loop(){
 
   if(calc_flag==1)
   {
     calc_flag = 0;
-    angle_calc(x,y);
+    float servo_angle= angle_calc(x,y);
     
+    Serial.println(servo_angle);
     delay(500);
+    
   }
+  delay(500);
 }
 
 

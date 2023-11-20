@@ -5,7 +5,7 @@ import random
 from PIL import Image
 from io import BytesIO
 
-esp32_url = "http://10.247.137.84"
+esp32_url = "http://10.247.137.66"
 state = requests.get(esp32_url+"/start")
 # state = requests.get("http://10.247.137.84/start")
 print(state)
