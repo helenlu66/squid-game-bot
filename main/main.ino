@@ -93,7 +93,13 @@ void angle_calc(float image_x,float image_y) {
   // servo_base.write(angle);
   // servo_hand.write(angle);}
   VL53L0X_RangingMeasurementData_t measure;
+<<<<<<< HEAD
   lox.rangingTest(&measure, false); 
+=======
+
+  lox.rangingTest(&measure, false); 
+  
+>>>>>>> 97da43d283a72377d2892dc3237a475f02b5b5ed
   // receive image coordinates
   float arm_angle = 0;
   // float base_angle = 0;
