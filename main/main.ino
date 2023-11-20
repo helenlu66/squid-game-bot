@@ -65,6 +65,9 @@ float rotate_arm(float current_angle, float target_angle) {
 
 void loop() {
   VL53L0X_RangingMeasurementData_t measure;
+
+  lox.rangingTest(&measure, false); 
+  
   // receive image coordinates
   float arm_angle = 0;
   float base_angle = 0;
