@@ -7,7 +7,7 @@ from io import BytesIO
  
 #change the IP address below according to the
 #IP shown in the Serial monitor of Arduino code
-esp32_cam_url='http://10.0.0.220/picture'
+esp32_cam_url='http://10.247.137.14/picture'
 esp32_url = ''
  
 hue_threshold = 25

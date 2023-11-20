@@ -1,14 +1,35 @@
+#include "esp_bt_main.h"
+#include "esp_bt_device.h"
+#include <BluetoothSerial.h>
 #include <WebServer.h>
 #include <WiFi.h>
 #include <esp32cam.h>
- 
-const char* WIFI_SSID = "P60Art";
-const char* WIFI_PASS = "fsj13579";
+#include <Wire.h>
+
+BluetoothSerial SerialBT;
+const char* WIFI_SSID = "Tufts_Robot";
+const char* WIFI_PASS = "";
  
 WebServer server(80);
  
  
 static auto loRes = esp32cam::Resolution::find(320, 240);
+
+
+void printDeviceAddress() {
+
+  const uint8_t* point = esp_bt_dev_get_address();
+  for (int i = 0; i < 6; i++) {
+    char str[3];
+    sprintf(str, "%02X", (int)point[i]);
+    Serial.print(str);
+    if (i < 5){
+      Serial.print(":");
+    }
+  }
+}
+
+
 void serveJpg()
 {
   auto frame = esp32cam::capture();
@@ -24,6 +45,7 @@ void serveJpg()
   server.send(200, "image/jpeg");
   WiFiClient client = server.client();
   frame->writeTo(client);
+  
 }
  
 void handleJpgLo()
