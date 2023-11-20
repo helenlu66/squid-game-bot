@@ -8,7 +8,7 @@ from io import BytesIO
 #change the IP address below according to the
 #IP shown in the Serial monitor of Arduino code
 esp32_cam_url='http://10.247.137.14/picture'
-esp32_url = ''
+esp32_url = "http://10.247.137.66"
  
 hue_threshold = 25
 saturation_lower_threshold = 100
@@ -19,8 +19,10 @@ value_upper_threshold = 255
 def getGameState():
     """Get the game state from the ESP32.
     Result might be 'game not started', 'game started'
+    server address: ESP32_URL/start
     """
-    requests.get(esp32_url)
+    game_state =  requests.get(esp32_url + "/start")
+    return game_state.text
 
 def turnOnLight(light='green'):
     """Send a POST request to ESP32 to turn on the green or red light
@@ -114,9 +116,10 @@ def eliminatePlayer(target):
     """
     data = {
         'servos':'shootingMode',
-        'target':target
+        'x':target[0],
+        'y':target[1]
     }
-    requests.post(esp32_url, data=data)
+    requests.post(esp32_url+"/post-message", json=data)
 
 def turnOffLights():
     """Send a POST request to ESP32 to turn off both lights
@@ -152,6 +155,17 @@ def gameLoop():
     # game ended or is being reset, turn off lights
     turnOffLights()
 
+def gameloop_test():
+    target = (0,0)
+    gamestate = getGameState()
+    print(gamestate,'\n')
+    if(gamestate == "game started"):
+        print("start!")
+        eliminatePlayer(target)
+        time.sleep(5)
+
+
 if __name__=="__main__":
-    player_moved, mask = motionDetect()
-    calculateTarget(mask)
+    # player_moved, mask = motionDetect()
+    # calculateTarget(mask)
+    gameloop_test()

@@ -107,7 +107,7 @@ float angle_calc(float image_x,float image_y) {
   
   float Z = measure.RangeMilliMeter * 1000; // lidar output is in mm so need to convert to meters
   Serial.print(Z);
-  Z=0.1;
+  Z=1;
   float laser_x, laser_y;
   calculate_laser_coordinates(arm_angle, laser_x, laser_y);
   Serial.print("laser_x");
@@ -125,7 +125,7 @@ float angle_calc(float image_x,float image_y) {
   float angle_base, angle_laser;
   Serial.print("*base_angle_deg");
   Serial.println(*base_angle_deg);
-  float base_ag_deg = calculate_inverse_kinematics(*X+0.1, *Y+0.1, shoulder_x, shoulder_y, laser_x, laser_y, Z, 0, 0);
+  float base_ag_deg = calculate_inverse_kinematics(*X, *Y, shoulder_x, shoulder_y, laser_x, laser_y, Z, 0, 0);
   // base_angle = rotate_base(base_angle);
   // arm_angle = rotate_arm(arm_angle);
   // Send an HTTP POST request every 10 minutes
