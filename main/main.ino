@@ -12,6 +12,9 @@
 
 int base_pin = 32;
 int hand_pin = 33;
+int green = 32;
+int yellow = 34;
+int red = 35;
 #define L2 0.05 // length of arm joint in meters
 #define f 0.01  // focal length of camera in meters
 Adafruit_VL53L0X lox = Adafruit_VL53L0X();
@@ -22,6 +25,9 @@ int base_servo_offset = 150;
 int calc_flag = 0;
 float x = -100;
 float y = -100;
+pinMode(green, OUTPUT);
+pinMode(yellow, OUTPUT);
+pinMode(red, OUTPUT);
 
 const char* ssid = "Tufts_Robot";
 const char* password = "";
@@ -182,11 +188,16 @@ void setup() {
     String response;
     serializeJson(data, response);
     request->send(200, "application/json", response);
-    // Serial.println(response);
-    x= data["x"];
-    y = data["y"];
-    // Serial.println(x);
-    calc_flag = 1;
+    if(example.contains("light")) {
+        light = data["light"];
+        calc_flag = 2;
+    } else {
+        // Serial.println(response);
+        x= data["x"];
+        y = data["y"];
+        // Serial.println(x);
+        calc_flag = 1;
+    }
   });
   
   server.addHandler(handler);
@@ -202,6 +213,17 @@ void loop(){
     Serial.println(servo_angle);
     delay(500);
     
+  } else if (calc_flag==2) {
+    calc_flag = 0;
+    if (light == 'off') {
+      digitalWrite(green, LOW);
+      digitalWrite(yellow, LOW);
+      digitalWrite(red, LOW);
+    } else {
+      digitalWrite(green, LOW);
+      digitalWrite(yellow, LOW);
+      digitalWrite(red, LOW);
+      digitalWrite(light, HIGH);
   }
   delay(500);
 }
